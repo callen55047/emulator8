@@ -6,7 +6,10 @@ project(chip8_emulator)
 find_package(SDL3 REQUIRED)
 
 # Add executable
-add_executable(chip8_emulator src/main.cpp)
+add_executable(chip8_emulator src/main.cpp src/Chip8.cpp)
+
+# Add include directory
+target_include_directories(chip8_emulator PUBLIC include)
 
 # Link SDL3
 target_link_libraries(chip8_emulator PRIVATE SDL3::SDL3)
