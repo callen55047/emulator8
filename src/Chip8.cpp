@@ -61,6 +61,13 @@ void Chip8::loadROM(const char* filename) {
     std::streamsize size = file.tellg();
     file.seekg(0, std::ios::beg);
 
+    // check file sizing
+    if (size <= 1) {
+        std::cerr << "Error: ROM file is too small to be valid.\n";
+        file.close();
+        return;
+    }
+
     std::vector<char> buffer(size);
     if (file.read(buffer.data(), size)) {
         for (size_t i = 0; i < buffer.size(); ++i) {
@@ -71,6 +78,19 @@ void Chip8::loadROM(const char* filename) {
     file.close();
 }
 
+void Chip8::debugMemory() {
+    std::cout << "--- Memory Dump @ 0x200 ---" << std::endl;
+    for (int i = 0; i < 32; ++i) { // Print the first 32 bytes of program memory
+        // std::hex manipulator makes it print in hexadecimal
+        // (int) is needed to prevent it from printing as a character
+        std::cout << std::hex << (int)memory[0x200 + i] << " ";
+    }
+    // debug program counter
+    std::cout << "PC in main() before loop: 0x" << std::hex << pc << std::endl;
+
+    std::cout << std::endl << "--------------------------" << std::endl;
+}
+
 void Chip8::emulateCycle() {
     opcode = memory[pc] << 8 | memory[pc + 1];
 
@@ -78,7 +98,7 @@ void Chip8::emulateCycle() {
         // ---- System instructions ----
         case 0x0000:
             // new mask for instructions
-            switch (opcode && 0x00FF) {
+            switch (opcode & 0x00FF) {
                 case 0x00E0: {
                     // clear the screen
                     gfx.fill(0);
@@ -196,7 +216,7 @@ void Chip8::emulateCycle() {
                 }
                 case 0xE: {
                     V[0xF] = (V[x] & 0x80) >> 7; // isolate MSB and shift right, setting carry flag
-                    V[x] >>= 1; // right bit shift, which divides value by 2
+                    V[x] <<= 1; // right bit shift, which divides value by 2
                     break;
                 }
                 default: {
@@ -221,8 +241,9 @@ void Chip8::emulateCycle() {
         }
         case 0xC000: {
             // create random number and store in V[x]
-            V[(opcode & 0x0F00) >> 8] = (rand() % 255) & (opcode & 0x00FF);
+            V[(opcode & 0x0F00) >> 8] = (rand() % 256) & (opcode & 0x00FF);
             pc += 2;
+            break;
         }
         case 0xD000: {
             uint8_t x = V[(opcode & 0x0F00) >> 8];
@@ -318,15 +339,15 @@ void Chip8::emulateCycle() {
             pc += 2;
             break;
         }
-            
-        // timer countdown and defaults
-        if (delay_timer > 0) --delay_timer;
-        if (sound_timer > 0) {
-            --sound_timer;
-            if (sound_timer == 0) {
-                // TODO: implement audio cue play
-                std::cout << "BEEP!\n";
-            }
+    }
+
+    // timer countdown and defaults
+    if (delay_timer > 0) --delay_timer;
+    if (sound_timer > 0) {
+        --sound_timer;
+        if (sound_timer == 0) {
+            // TODO: implement audio cue play
+            std::cout << "BEEP!\n";
         }
     }
 }

@@ -6,6 +6,7 @@ public:
     Chip8();
 
     void loadROM(const char* filename);
+    void debugMemory();
     void emulateCycle(); // do one instruction cycle
     
     bool drawFlag;
@@ -15,7 +16,7 @@ public:
 private:
     std::array<uint8_t, 4096> memory; // 4K memory
     std::array<uint8_t, 16> V; // 16 general purpose registers
-    std::array<uint8_t, 16> stack; // call stack
+    std::array<uint16_t, 16> stack; // call stack
 
     uint16_t opcode; // current instruction
     uint16_t sp; // stack pointer

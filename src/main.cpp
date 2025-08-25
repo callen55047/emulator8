@@ -17,6 +17,9 @@ int main(int argc, char* argv[]) {
 
     Chip8 chip8;
     chip8.loadROM(argv[1]);
+    chip8.debugMemory();
+
+    SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengl");
 
     SDL_Window* window = SDL_CreateWindow(
         "Chip-8 Emulator", 
@@ -49,6 +52,10 @@ int main(int argc, char* argv[]) {
         SDL_SCANCODE_4, SDL_SCANCODE_R, SDL_SCANCODE_F, SDL_SCANCODE_V
     };
 
+    const int CPU_HZ = 700;
+    const int FRAME_RATE = 60;
+    const int CYCLES_PER_FRAME = CPU_HZ / FRAME_RATE;
+
     while (!quit) {
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_EVENT_QUIT) quit = true;
@@ -58,12 +65,17 @@ int main(int argc, char* argv[]) {
                 SDL_Scancode scancode = event.key.scancode;
                 // could do with a map instead?
                 for (int i = 0; i < 16; ++i) {
-                    if (scancode = keymap[i]) {
+                    if (scancode == keymap[i]) {
                         chip8.key[i] = pressed;
                     }
                 }
             }
         }
+
+        // run multiple CPU cycles
+        // for (int i = 0; i < CYCLES_PER_FRAME; ++i) {
+        //     chip8.emulateCycle();
+        // }
 
         chip8.emulateCycle();
 
