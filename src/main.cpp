@@ -72,12 +72,10 @@ int main(int argc, char* argv[]) {
             }
         }
 
-        // run multiple CPU cycles
-        // for (int i = 0; i < CYCLES_PER_FRAME; ++i) {
-        //     chip8.emulateCycle();
-        // }
-
-        chip8.emulateCycle();
+        // Run enough CPU cycles per frame (critical for proper erase/redraw behavior)
+        for (int i = 0; i < CYCLES_PER_FRAME; ++i) {
+            chip8.emulateCycle();
+        }
 
         if (chip8.drawFlag) {
             chip8.drawFlag = false;
@@ -85,13 +83,18 @@ int main(int argc, char* argv[]) {
             uint32_t pixels[VIDEO_WIDTH * VIDEO_HEIGHT];
             for (int i = 0; i < VIDEO_WIDTH * VIDEO_HEIGHT; ++i) {
                 uint8_t pixel = chip8.gfx[i];
-                pixels[i] = pixel ? 0xFFFFFFFF : 0xFF000000;
+                pixels[i] = pixel ? 0xFFFFFFFF : 0xFF000000; // white/black
             }
 
             SDL_UpdateTexture(texture, nullptr, pixels, VIDEO_WIDTH * sizeof(uint32_t));
-            SDL_RenderTexture(renderer, texture, nullptr, nullptr);
-            SDL_RenderPresent(renderer);
         }
+
+        // TODO: clear screen before next frame
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+        SDL_RenderClear(renderer);
+
+        SDL_RenderTexture(renderer, texture, nullptr, nullptr);
+        SDL_RenderPresent(renderer);
 
         // caps fps to 60
         // TODO: should improve by recording frame time and delaying delta
