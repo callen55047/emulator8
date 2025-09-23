@@ -1,14 +1,21 @@
+#pragma once
+
 #include <array>
 #include <cstdint>
+#include <vector>
 
 class Chip8 {
 public:
     Chip8();
 
     void loadROM(const char* filename);
+    void loadProgram(const std::vector<uint8_t>& program);
     void debugMemory();
     void emulateCycle(); // do one instruction cycle
-    
+
+    uint16_t getPC() const;
+    uint8_t getRegister(uint8_t index) const;
+
     bool drawFlag;
     std::array<uint8_t, 2048> gfx; // 64x32 monochrome display
     std::array<uint8_t, 16> key; // HEX keypad

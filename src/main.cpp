@@ -90,7 +90,6 @@ int main(int argc, char* argv[]) {
         }
 
         // TODO: clear screen before next frame
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
 
         SDL_RenderTexture(renderer, texture, nullptr, nullptr);

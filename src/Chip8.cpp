@@ -1,6 +1,6 @@
 #include "Chip8.h"
-#include <iostream>
 #include <fstream>
+#include <iostream>
 #include <vector>
 
 Chip8::Chip8() {
@@ -9,7 +9,7 @@ Chip8::Chip8() {
 
 void Chip8::initialize() {
     /**
-     * programs start at address 0x200. 
+     * programs start at address 0x200.
      * 0x000 - 0x1FF is reserved for system level code (interpreter, fonts, etc.)
      */
     pc = 0x200;
@@ -73,9 +73,23 @@ void Chip8::loadROM(const char* filename) {
         for (size_t i = 0; i < buffer.size(); ++i) {
             memory[0x200 + i] = buffer[i];
         }
+        pc = 0x200;
     }
 
     file.close();
+}
+
+void Chip8::loadProgram(const std::vector<uint8_t>& program) {
+    initialize();
+
+    if (program.size() + 0x200 > memory.size()) {
+        std::cerr << "Program size exceeds Chip-8 memory\n";
+        return;
+    }
+
+    for (size_t i = 0; i < program.size(); ++i) {
+        memory[0x200 + i] = program[i];
+    }
 }
 
 void Chip8::debugMemory() {
@@ -89,6 +103,14 @@ void Chip8::debugMemory() {
     std::cout << "PC in main() before loop: 0x" << std::hex << pc << std::endl;
 
     std::cout << std::endl << "--------------------------" << std::endl;
+}
+
+uint16_t Chip8::getPC() const {
+    return pc;
+}
+
+uint8_t Chip8::getRegister(uint8_t index) const {
+    return index < V.size() ? V[index] : 0;
 }
 
 void Chip8::emulateCycle() {
@@ -106,7 +128,7 @@ void Chip8::emulateCycle() {
                     pc += 2;
                     break;
                 }
-            
+
                 case 0x00EE: {
                     // return to a subroutine
                     --sp;
@@ -114,7 +136,7 @@ void Chip8::emulateCycle() {
                     pc += 2;
                     break;
                 }
-                
+
                 default: {
                     std::cerr << "Unkown 0x0000 opcode: " << std::hex << opcode << "\n";
                     pc += 2;
@@ -163,16 +185,6 @@ void Chip8::emulateCycle() {
             }
             break;
         }
-        case 0x9000: {
-            // conditional check - NOT
-            if (V[(opcode & 0x0F00) >> 8] != V[(opcode & 0x00F0) >> 4]) {
-                pc += 4;
-            } else {
-                pc += 2;
-            }
-            break;
-        }
-        // ---- Arithmetic & Logic ----
         case 0x6000: {
             // set registry value (to last 2 digits of opcode)
             V[(opcode & 0x0F00) >> 8] = opcode & 0x00FF;
@@ -227,7 +239,16 @@ void Chip8::emulateCycle() {
             pc += 2;
             break;
         }
-        // ---- Memory, Random, & Display ----
+        case 0x9000: {
+            // conditional check - NOT
+            if (V[(opcode & 0x0F00) >> 8] != V[(opcode & 0x00F0) >> 4]) {
+                pc += 4;
+            } else {
+                pc += 2;
+            }
+            break;
+        }
+        // ---- Arithmetic & Logic ----
         case 0xA000: {
             // set index register to last 3 hex values
             I = opcode & 0x0FFF;
