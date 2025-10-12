@@ -2,10 +2,7 @@
 // Created by Callen Egan on 2025-10-10.
 //
 
-#ifndef CHIP8_EMULATOR_WINDOW_H
-#define CHIP8_EMULATOR_WINDOW_H
-
-#endif //CHIP8_EMULATOR_WINDOW_H
+#pragma once
 
 #include <SDL3/SDL.h>
 #include <cstdint>
