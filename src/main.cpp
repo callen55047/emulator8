@@ -1,5 +1,4 @@
-
-#include "Chip8.h"
+#include "app/emulator/Chip8.h"
 #include <SDL3/SDL.h>
 #include <iostream>
 #include <chrono>
@@ -52,9 +51,9 @@ int main(int argc, char* argv[]) {
         SDL_SCANCODE_4, SDL_SCANCODE_R, SDL_SCANCODE_F, SDL_SCANCODE_V
     };
 
-    const int CPU_HZ = 700;
-    const int FRAME_RATE = 60;
-    const int CYCLES_PER_FRAME = CPU_HZ / FRAME_RATE;
+    constexpr int CPU_HZ = 700;
+    constexpr int FRAME_RATE = 60;
+    constexpr int CYCLES_PER_FRAME = CPU_HZ / FRAME_RATE;
 
     while (!quit) {
         while (SDL_PollEvent(&event)) {

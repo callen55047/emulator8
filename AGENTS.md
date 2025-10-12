@@ -1,19 +1,37 @@
 # Repository Guidelines
 
 ## Project Structure & Module Organization
-Runtime code lives in `src/`, with the main loop in `src/main.cpp` and the Chip-8 core in `src/Chip8.cpp`. Public headers stay in `include/`, test sources sit in `tests/`, and reference ROMs belong in `roms/`. CMake places generated files under `build/`; keep that tree out of version control and create throwaway subfolders there for experiments.
+- Runtime code lives in `src/` 
+- the main loop in `src/App.cpp` and the Chip-8 core in `src/Chip8.cpp`
+- Public headers stay in `include/`
+- test sources sit in `tests/` 
+- reference ROMs belong in `roms/` 
+- CMake places generated files under `build/`; keep that tree out of version control and create throwaway subfolders there for experiments.
 
 ## Build, Run, and Development Commands
 Commands verified on macOS 14 (Apple Clang + Homebrew SDL3) and Ubuntu 22.04 (GCC + `libsdl3-dev`):
 ```bash
 cmake -S . -B build [-DSDL3_DIR=/opt/homebrew/opt/sdl3]
 cmake --build build
-./build/chip8_emulator roms/PONG.ch8
+./build/chip8_emulator roms/PONG.ch8 // TODO: update once menu complete
 ```
 On Windows 11, MSYS2 with `pacman -S mingw-w64-ucrt-x86_64-sdl3` or vcpkg (`vcpkg install sdl3`) works; point CMake at `%VCPKG_ROOT%/installed/x64-windows`. Use `cmake --build build --target clean` before regenerating toolchains, and pass `--parallel` during tight edit loops. When SDL3 lives elsewhere, export `CMAKE_PREFIX_PATH` or adjust `SDL3_DIR` to point at the install root.
 
 ## Coding Style & Naming Conventions
-Match the existing C++ style: 4-space indentation, braces on the same line, and `std::array`/`std::vector` for containers. Classes stay in PascalCase (`Chip8`), member functions in camelCase (`emulateCycle`), and constants in SCREAMING_SNAKE_CASE (`VIDEO_HEIGHT`). Keep interfaces in headers and implementation in `src/`, prefer standard-library facilities over raw pointers, and add brief `//` comments only when intent is non-obvious.
+- Match the existing C++ style: 4-space indentation, braces on the same line, and `std::array`/`std::vector` for containers. 
+- Classes stay in PascalCase (`Chip8`), member functions in camelCase (`emulateCycle`), and constants in SCREAMING_SNAKE_CASE (`VIDEO_HEIGHT`). 
+- Keep interfaces in headers and implementation in `src/`
+- prefer standard-library facilities over raw pointers
+- add brief `//` comments only when intent is non-obvious.
+
+### SDL3 Usage & Coding Standards
+- Always initialize and shut down SDL subsystems explicitly using SDL_Init() / SDL_Quit().
+- Prefer SDL_GetError() for diagnostics across all SDL3 and extension libraries (e.g. SDL3_ttf), as per the unified error model.
+- Avoid global SDL state; encapsulate renderer, window, and texture management in dedicated classes (e.g., Display, Renderer, or FontManager).
+- Use RAII-style wrappers (constructors for setup, destructors for cleanup) instead of manual free or destroy calls wherever possible.
+- Manage event polling inside a clearly defined App or Emulator loop; isolate SDL input handling from emulation logic.
+- Do not hardcode resource paths—derive font, ROM, and texture locations from configuration or command-line arguments.
+- Ensure the main loop handles timing using SDL’s SDL_GetTicks() or SDL_GetPerformanceCounter() for frame pacing, not arbitrary sleeps.
 
 ## Testing Guidelines
 Core regression coverage runs through CTest:
@@ -22,6 +40,15 @@ cmake --build build --target chip8_tests
 ctest --test-dir build
 ```
 The suite exercises instruction decoding (LD, ADD, CALL/RET, CLS) and is safe for CI. Continue manual smoke checks by loading representative ROMs (e.g., `roms/PONG.ch8`) and watching console diagnostics like `debugMemory()`. Name future test files after the behavior under test (e.g., `chip8_timer_tests.cpp`) so they auto-align with the current pattern.
+
+## Acceptance Criteria for Generated Code
+- [ ] Build Validation: Code must compile cleanly using cmake --build build without warnings or errors.
+- [ ] Test Verification: All existing unit tests must pass via ctest --test-dir build. Where tests are missing, add lightweight regression checks for critical paths.
+- [ ] Length Constraint: Total generated or modified code must remain under 150 lines per contribution, excluding comments and whitespace.
+- [ ] Structure & Clarity: Code should follow separation of concerns—each class or file serves a single purpose when possible.
+- [ ] Deep Modules: Classes must expose minimal public APIs with clearly defined responsibilities; internals remain private or encapsulated.
+- [ ] Maintainability: Avoid unnecessary abstraction, dynamic allocation, or dependencies that make testing or portability harder.
+- [ ] SDL Compliance: SDL3 and its extensions (like SDL3_ttf) must be used through their official APIs, with proper initialization, cleanup, and error checks.
 
 ## Commit & Pull Request Guidelines
 Follow the existing Git history: keep commit subjects short and imperative (`fix timer decrement`), bundle related changes, and avoid formatting-only churn. Pull requests should summarise functional impact, list ROMs used for manual verification, and mention any SDL3 or toolchain prerequisites. Attach screenshots or short clips when the change affects rendering, and link issues or discussions for added context.

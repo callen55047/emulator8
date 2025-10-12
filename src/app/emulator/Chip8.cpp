@@ -1,4 +1,4 @@
-#include "Chip8.h"
+#include "../../../include/app/emulator/Chip8.h"
 #include <fstream>
 #include <iostream>
 #include <vector>
